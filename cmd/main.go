@@ -4,12 +4,18 @@ import (
 	"fmt"
 	"net/http"
 	"purple/internal/auth"
+	"purple/configs"
+
 )
 
 func main() {
-	//conf := configs.NewConfig()
+	conf := configs.NewConfig()
 	router := http.NewServeMux()
-	auth.NewAuthHandler(router)
+
+
+	auth.NewAuthHandler(router, auth.AuthHandlerDeps{
+		Config: conf,
+	})
 
 	server := &http.Server{
 		Addr:    ":8080",

@@ -2,12 +2,11 @@ package auth
 
 import (
 	"encoding/json"
-	"errors"
+	"github.com/go-playground/validator/v10"
 	"log"
 	"net/http"
 	"purple/configs"
 	"purple/pkg/resp"
-	"regexp"
 )
 
 type AuthHandlerDeps struct {
@@ -31,13 +30,12 @@ func (h *AuthHandler) Login() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		var payload LoginRequest
 		err := json.NewDecoder(req.Body).Decode(&payload)
-
 		if err != nil {
 			resp.JSON(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-
-		err = validateLogin(payload)
+		validate := validator.New()
+		err = validate.Struct(payload)
 		if err != nil {
 			resp.JSON(w, err.Error(), http.StatusBadRequest)
 			return
@@ -54,16 +52,4 @@ func (h *AuthHandler) Register() http.HandlerFunc {
 		w.Write([]byte("register"))
 		log.Println(h.Auth.Secret)
 	}
-}
-
-func validateLogin(l LoginRequest) error {
-	if len(l.Email) == 0 || len(l.Password) == 0 {
-		return errors.New("email or password is empty")
-	}
-	reg, _ := regexp.Compile(`^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$`)
-	if !reg.MatchString(l.Email) {
-		return errors.New("invalid email")
-		return
-	}
-	return nil
 }

@@ -3,15 +3,13 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"purple/internal/auth"
 	"purple/configs"
-
+	"purple/internal/auth"
 )
 
 func main() {
 	conf := configs.NewConfig()
 	router := http.NewServeMux()
-
 
 	auth.NewAuthHandler(router, auth.AuthHandlerDeps{
 		Config: conf,

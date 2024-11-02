@@ -1,9 +1,11 @@
 package links
 
 import (
+	"gorm.io/gorm"
 	"net/http"
 	"purple/pkg/request"
 	"purple/pkg/resp"
+	"strconv"
 )
 
 type LinkHandlerDeps struct {
@@ -65,13 +67,48 @@ func (h *LinkHandler) Create() http.HandlerFunc {
 
 func (h *LinkHandler) Delete() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		id := r.PathValue("id")
-		resp.JSON(w, id, http.StatusOK)
+		idString := r.PathValue("id")
+		id, err := strconv.ParseUint(idString, 10, 32)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		if _, err := h.LinkRepository.FindById(uint(id)); err != nil {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
+
+		err = h.LinkRepository.Delete(uint(id))
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		resp.JSON(w, nil, http.StatusOK)
 	}
 }
 
 func (h *LinkHandler) Update() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		body, err := request.HandleBody[LinkUpdateRequest](&w, r)
+		if err != nil {
+			return
+		}
+		idString := r.PathValue("id")
+		id, err := strconv.ParseUint(idString, 10, 32)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		link, err := h.LinkRepository.Update(&Link{
+			Model: gorm.Model{ID: uint(id)},
+			Url:   body.Url,
+			Hash:  body.Hash,
+		})
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
 
+		resp.JSON(w, link, http.StatusOK)
 	}
 }

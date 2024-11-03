@@ -7,6 +7,7 @@ import (
 	"purple/internal/auth"
 	"purple/internal/links"
 	"purple/pkg/db"
+	"purple/pkg/middleware"
 )
 
 func main() {
@@ -25,9 +26,15 @@ func main() {
 		Config: conf,
 	})
 
-	server := &http.Server{
+	// Middlewares
+	stack := middleware.Chain(
+		middleware.CORS,
+		middleware.Logging,
+	)
+
+	server := http.Server{
 		Addr:    ":8080",
-		Handler: router,
+		Handler: stack(router),
 	}
 
 	fmt.Println("Listening on port 8080")

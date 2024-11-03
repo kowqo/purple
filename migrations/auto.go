@@ -6,6 +6,7 @@ import (
 	"gorm.io/gorm"
 	"os"
 	"purple/internal/links"
+	"purple/internal/user"
 )
 
 func main() {
@@ -20,5 +21,5 @@ func main() {
 		panic(err)
 	}
 
-	db.AutoMigrate(&links.Link{})
+	db.AutoMigrate(&links.Link{}, &user.User{})
 }
